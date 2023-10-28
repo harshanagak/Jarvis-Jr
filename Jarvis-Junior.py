@@ -2,7 +2,7 @@ import tkinter
 import subprocess
 import openai
 
-api_key = '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'
+api_key = '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'
 
 class CLIWindow(tkinter.Tk):
     def __init__(self):
@@ -130,20 +130,45 @@ class CLIWindow(tkinter.Tk):
     # Delete the content of the Text widget (clear it)
                     self.text_box.delete("1.0", "end")
                     return
+                unsafe_commands = ["format","delete","del","erase","rmdir","rm","attrib","regedit","schtasks","shutdown","taskkill","deltree","fdisk","chkdsk"]
+                check=False
+                for word in generated_command:
+                    if word in unsafe_commands:
+                        check=True
+                        self.text_box.insert("this is an unsafe command do you want to continue")
+                        recommand = self.text_box.get("1.0", "end-1c").split("\n")
+                        if recommand == yes or y:
+                            process = subprocess.Popen(
+                                generated_command,
+                                shell=True,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE,
+                                text=True,
+                            )
+                            output, error = process.communicate()
 
-                process = subprocess.Popen(
-                    generated_command,
-                    shell=True,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    text=True,
-                )
-                output, error = process.communicate()
+                            if output:
+                                self.text_box.insert("end", f"\nOutput:\n{output}\n")
+                            if error:
+                                self.text_box.insert("end", f"\nError:\n{error}\n")
+                            break
+                        else:
+                            self.text_box.insert("end", f"unsafe code execution stopped")
+                
+                if check is False:
+                    process = subprocess.Popen(
+                        generated_command,
+                        shell=True,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        text=True,
+                    )
+                    output, error = process.communicate()
 
-                if output:
-                    self.text_box.insert("end", f"\nOutput:\n{output}\n")
-                if error:
-                    self.text_box.insert("end", f"\nError:\n{error}\n")
+                    if output:
+                        self.text_box.insert("end", f"\nOutput:\n{output}\n")
+                    if error:
+                        self.text_box.insert("end", f"\nError:\n{error}\n")
 
     def update_title(self, bg, fg):
         title_label = self.winfo_children()[
