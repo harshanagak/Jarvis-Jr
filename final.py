@@ -2,7 +2,7 @@ import tkinter
 import subprocess
 import openai
 
-api_key = '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'
+api_key = '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'
 
 class CLIWindow(tkinter.Tk):
     def __init__(self):
@@ -112,20 +112,25 @@ class CLIWindow(tkinter.Tk):
         self.toggle_text = "Light" if self.current_mode == "dark" else "Dark"
         self.toggle_button.config(text=self.toggle_text)
 
-    def run_command(self):
+    def run_command(self,event=None):
         commands = self.text_box.get("1.0", "end-1c").split("\n")
-        for command in commands:
+        command = commands[-1]
+        if True:
             if command.strip():
                 response = openai.Completion.create(
                 engine="text-davinci-003",  # Use the GPT-3.5 engine
-                prompt=f"Translate the following English sentence into a command: '{command}'\nCommand:",
+                prompt=f"Translate the following English sentence into a command in windows command promt: '{command}'\nCommand:",
                 max_tokens=30,  # Adjust the maximum number of tokens as needed
                 api_key=api_key
                 )
 # Extract the generated command from the response
                 generated_command = response.choices[0].text.strip()
-                print(5)
                 print(generated_command)
+                if generated_command in ["cls", "clear"]:
+    # Delete the content of the Text widget (clear it)
+                    self.text_box.delete("1.0", "end")
+                    return
+
                 process = subprocess.Popen(
                     generated_command,
                     shell=True,
@@ -150,4 +155,5 @@ class CLIWindow(tkinter.Tk):
 if __name__ == "__main__":
     window = CLIWindow()
     window.geometry("800x600")
+    window.text_box.bind("<KeyPress-Return>", window.run_command)
     window.mainloop()
