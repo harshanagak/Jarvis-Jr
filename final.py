@@ -113,32 +113,25 @@ class CLIWindow(tkinter.Tk):
         self.toggle_button.config(text=self.toggle_text)
 
     def run_command(self):
-        commands = self.text_box.get("1.0", "end-1c").split("\n")
-        for command in commands:
-            if command.strip():
-                response = openai.Completion.create(
-                engine="text-davinci-003",  # Use the GPT-3.5 engine
-                prompt=f"Translate the following English sentence into a command: '{command}'\nCommand:",
-                max_tokens=30,  # Adjust the maximum number of tokens as needed
-                api_key=api_key
-                )
-# Extract the generated command from the response
-                generated_command = response.choices[0].text.strip()
-                print(5)
-                print(generated_command)
-                process = subprocess.Popen(
-                    generated_command,
-                    shell=True,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    text=True,
-                )
-                output, error = process.communicate()
+        user_input = input("Enter the variable text: ")  # Take user input
 
-                if output:
-                    self.text_box.insert("end", f"\nOutput:\n{output}\n")
-                if error:
-                    self.text_box.insert("end", f"\nError:\n{error}\n")
+        with open('prompt_file.txt', 'r') as file:
+            prompt_from_file = file.read()  # Read prompt from the file
+
+        # Replace placeholder with user input
+        merged_prompt = prompt_from_file.replace('[variable text]', user_input)
+
+        # Send merged prompt to OpenAI API
+        response = openai.Completion.create(
+            engine="text-davinci-003",
+            prompt=merged_prompt,
+            max_tokens=150,
+            api_key=api_key
+        )
+
+        # Extract and handle the generated text as needed
+        generated_text = response.choices[0].text.strip()
+        print(generated_text)
 
     def update_title(self, bg, fg):
         title_label = self.winfo_children()[
